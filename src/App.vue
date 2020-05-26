@@ -23,11 +23,13 @@
         <option value="3" @change="filterTodolists(3)">--無期限--</option>
       </select>
 
-      <button @click.prevent="filterTodolists(0)">全部</button>
-      <button @click.prevent="filterTodolists(1)">優先</button>
-      <button @click.prevent="filterTodolists(2)">次要</button>
-      <button @click.prevent="filterTodolists(3)">無期限</button>
+      <button @click="filterTodolists(0)">全部</button>
+      <button @click="filterTodolists(1)">優先</button>
+      <button @click="filterTodolists(2)">次要</button>
+      <button @click="filterTodolists(3)">無期限</button>
 
+
+      
       <p v-if="todolists.length < 1" class="empty-table">No ToDoList</p>
       <table v-else>
         <thead>
@@ -53,6 +55,33 @@
           </tr>
         </tbody>
       </table>
+
+      <h1>ToDoList</h1>
+       <p v-if="todolists.length < 1" class="empty-table">No ToDoList</p>
+      <table v-else>
+        <thead>
+          <tr>
+            <th>ToDoList</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="newtodolist in newtodolists" :key="newtodolist.id">
+            <td v-if="editing === newtodolist.id">
+              <input type="text" v-model="newtodolist.table" />
+            </td>
+            <td v-else>{{ newtodolist.table }}</td>
+            <td v-if="editing === newtodolist.id">
+              <button @click="editnewtodolists(newtodolist.id,newtodolist.table)">Save</button>
+              <button class="muted-button" @click="editing = null">Cancel</button>
+            </td>
+            <td v-else>
+              <button @click="editMode(newtodolist.id)">Edit</button>
+              <button @click="deletenewtodolists(newtodolist.id)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
@@ -63,6 +92,20 @@ export default {
   components: {},
   data() {
     return {
+      newtodolists: [
+        {
+          id: 1,
+          sort: 2, // 1 優先 2 次要 3 無限期
+          table: "熟悉Git指令"
+        },
+      ],
+      filterTodolist: [
+        {
+          id: 1,
+          sort: 2, // 1 優先 2 次要 3 無限期
+          table: "熟悉Git指令"
+        }
+      ],
       todolist: {
         table: "" //使用者新輸入的事項
       },
@@ -87,6 +130,12 @@ export default {
       editing: null
     };
   },
+  created() { // vue 生命週期
+    this.todolists = JSON.parse(localStorage.getItem("todolists"));
+    // this.todolists = this.newtodolist;
+    // this.todolists=  this.ne
+  },
+
   methods: {
     editMode(id) {
       this.editing = id;
@@ -100,12 +149,15 @@ export default {
           : 0; // 判斷原有的 todolists 是否有資料, 有 取得最後一個ID , 無 則等於0
       const id = lastId + 1; // 定義一個ID變數取 新字串的ID
       this.todolists.push({ id: id, table: todolist });
+
+      console.log('...this.todolists'+ this.todolists);
+      localStorage.setItem("todolists", JSON.stringify(...this.todolists));
       this.todolist.table = "";
     },
 
     deleteTodolists(id) {
-      this.todolists = this.todolists.filter(function(todolist) {
-        return todolist.id !== id;
+      this.newtodolist = this.todolists.filter(function(newtodolist) {
+        return newtodolist.id !== id;
       });
     },
 
@@ -138,18 +190,19 @@ export default {
     },
 
     filterTodolists(sort) {
-      console.log('sort +' + sort);
+      this.filterTodolist = this.todolists
+      console.log("sort +" + sort);
       if (sort === 0) {
+        // this.workData = data.data.filter(item => item.workStatus == '在職');
         this.todolists = this.todolists.filter(function(todolist) {
-        return todolist.sort !== sort;
-      });
-      }else{
+          return todolist.sort !== sort;
+        });
+      } else {
         this.todolists = this.todolists.filter(function(todolist) {
-        return todolist.sort == sort;
-      });
+          return todolist.sort == sort;
+        });
       }
-      
-    },
+    }
     // printValue(val) {
     //   alert("Functions parameter: " + val);
     //   alert("Binding value before tick: " + this.value);
